@@ -1,0 +1,97 @@
+name: LeetCode Sync
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # Daily at 6 AM UTC
+  workflow_dispatch:     # Manual trigger
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'src/**'
+      - 'config/**'
+      - 'main.py'
+      - 'requirements.txt'
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+            
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          
+      - name: Create logs directory
+        run: mkdir -p logs
+        
+      - name: Run LeetCode sync
+        env:
+          LEETCODE_USERNAME: ${{ secrets.LEETCODE_USERNAME }}
+          GOOGLE_SHEETS_ID: ${{ secrets.GOOGLE_SHEETS_ID }}
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          LOG_LEVEL: INFO
+          LOG_FILE: logs/leetcode_tracker.log
+        run: |
+          python main.py sync --incremental
+          
+      - name: Upload logs as artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: sync-logs-${{ github.run_number }}
+          path: logs/
+          retention-days: 7
+          
+      - name: Create backup
+        env:
+          LEETCODE_USERNAME: ${{ secrets.LEETCODE_USERNAME }}
+          GOOGLE_SHEETS_ID: ${{ secrets.GOOGLE_SHEETS_ID }}
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          LOG_LEVEL: INFO
+        run: |
+          python main.py backup --path backups/backup_${{ github.run_number }}.json
+          
+      - name: Upload backup as artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: backup-${{ github.run_number }}
+          path: backups/
+          retention-days: 30
+          
+      - name: Notify on failure
+        if: failure()
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          message: |
+            ❌ LeetCode sync failed for run ${{ github.run_number }}
+            
+            Check the logs for details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+      - name: Notify on success
+        if: success()
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          message: |
+            ✅ LeetCode sync completed successfully for run ${{ github.run_number }}
+            
+            Check the logs for details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

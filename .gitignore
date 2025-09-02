@@ -1,0 +1,10 @@
+.env
+.env.example
+venv/
+logs/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pyw
+*.pyz
