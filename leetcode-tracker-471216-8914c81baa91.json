@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "leetcode-tracker-471216",
+  "private_key_id": "8914c81baa918b7b769788e4f2f036da7e747137",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDLOxf1ZjcTPW3i\noV/Wz6QWyA9W/DJHqoU0bsp4cZt68WXkR5s1/kcUeD8EEFTVXBx/YsvMEuJIGKA1\nsfQaopGjzauGLNgPSpaLH5CAj0wwEwtv0Wt33vsHvMvtyqFglLSg7y1XNNK+OPav\ntBJ9DhOaKM4e/jlOe71guqdPtBjqE9oBdw64Bc1ovhTdudd3p88SBw7Cg/ZUPyEI\nJdzPMNjG+EKWGliA39GsbYEga3LCZ4SAC2h5E+mBJpI2ylULiwF2ILdj6gqQjKCh\noe6jGaD2wYKEcH0aU9tx4GfpwoQv+vdqI139UGYZr07tB04h4Ga02fAfNqtyVdn5\nWoRETH9PAgMBAAECggEAIXjoJ0jghVC2yn7dtBma4w2sSR1cgqU5LzuYKWI8w3EC\n4ShSDgCFYH+1kUvHTSTQpMJ24nOxxUIZEP7wP3rLFfmH6J92Ln6QcPWP7TysxbY9\nSftqAeI94jZcOBwJnEihv2flRdmzZBUpvCKicOpinB9gY4Znld+Xf1j+uYfmGpdD\nPpxJCWROE1daHG44GITXeRHZ+4hxUqlhMreyLgQuEci/HARTZW2M5TgO/FZZmbmF\n/L3hHlFmmNjtdWLxy+JgHZq4UDU7Onuz/b74ZwvwA/2OKUk9phIF1Q6lghohkQn8\nPUBEzkEZ/RexsN0KodGaWBtPgL64DvbYU/JmeiVMUQKBgQDswO/IJWJMJI8YkWXX\naO4X4ybZGaAvaZvEqdeIODbd2xNJ2IWGX/tAqYTBBfCTbEuOdnw49zoGAZcJT0UQ\nHS7e23DJtm/sZRkmLGzxyrJsclS5z3tnuKqdUDJEEDhyQqYfH9qRvZB7tRyLOJmG\nUav3hqGWbEwzH9Pb8xVlMu47xQKBgQDbwIQO/PQPYuMCeD5z67J1WN7naJtfb/Uv\n99PuF5u6LNv8R6ylf8kMFW7jYoALTkGJE2Ga5IBDvEmD6pgergkgR8z1uCkRIdjt\ni5Kqc9Xj7dU6w92hCvXBczUfg/o2F15NIzv9SHrMgUc7OYK19TKUnNgFjNJCfhP2\ndrfag1tcAwKBgQDhomMjsZVEEheah3+y0xsPAvqUL5r9dL3yqRdziHep6s8wMr3W\nugTftG+D8mA8cBp2NK/hLqVK8hr60WR1ngp8dFDCvS9f8V4NhotxyQdQ2Ymr6HSo\n/lMESFkPixHwu1pNEXOiMDLR42LHwHJ4k7+70MCRdrcMhknINpxubSKlLQKBgQCC\nqd3b65xS6cGBXm4ED0l1bPpdLl30SWXIt9tT3sXB1ZqYTyXg4jJw9O2SVqc8EbP2\nBYgryWJa5EHyJjN9So4ym37LPE1u2mlaFXuHzoiHlosK/htx/kpSVGZp7teAAjUY\nOLMaz1X084mfNXr7JmiE5R2tbyY2UzEbg0ueqixQcQKBgQDKXQnRrbERRbBmJg0L\nVqm5JGoY3jcPtjmpGf+YNq+HNVFKqYf7Efxvt/aEzRQOPTf7tn1OIpq4yGwVd0Sg\nz2x4jIQn2tjV0w+Fj3vsCVZB7h3NAi1MnoBAs5xlE99Aexi1KXVDBRa7h0jMiAB3\n9q3t8eW+cr2n13UzjtnwQYJzWQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "manav-429@leetcode-tracker-471216.iam.gserviceaccount.com",
+  "client_id": "111395235970216549898",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/manav-429%40leetcode-tracker-471216.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

@@ -158,50 +158,6 @@ The system creates three sheets automatically:
 2. **Analytics Sheet**: Topic-wise summary and statistics
 3. **Progress Sheet**: Daily progress and streak tracking
 
-## 🔧 Configuration
-
-### Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `LEETCODE_USERNAME` | Your LeetCode username | ✅ |
-| `GOOGLE_SHEETS_ID` | Google Sheets spreadsheet ID | ✅ |
-| `GOOGLE_CREDENTIALS_JSON` | Service account JSON content | ✅ |
-| `LEETCODE_SESSION_ID` | LeetCode session ID (optional) | ❌ |
-| `LEETCODE_CSRF_TOKEN` | LeetCode CSRF token (optional) | ❌ |
-| `SYNC_INTERVAL` | Sync frequency (hourly/daily/weekly) | ❌ |
-| `LOG_LEVEL` | Logging level (DEBUG/INFO/WARNING/ERROR) | ❌ |
-
-### Topic Mapping
-
-Customize topic categorization by editing `config/topic_mapping.json`:
-
-```json
-{
-  "Array": "Arrays & Strings",
-  "Dynamic Programming": "Dynamic Programming",
-  "Graph": "Trees & Graphs"
-}
-```
-
-## 🤖 GitHub Actions Automation
-
-The system includes GitHub Actions for automated daily synchronization:
-
-1. **Automatic**: Runs daily at 6 AM UTC
-2. **Manual**: Trigger manually via GitHub UI
-3. **Code Changes**: Runs on pushes to main branch
-4. **Artifacts**: Logs and backups are saved as artifacts
-
-### Setup GitHub Actions
-
-1. **Add Repository Secrets**:
-   - `LEETCODE_USERNAME`: Your LeetCode username
-   - `GOOGLE_SHEETS_ID`: Your spreadsheet ID
-   - `GOOGLE_CREDENTIALS_JSON`: Base64 encoded service account JSON
-
-2. **Enable Actions**: Go to Actions tab and enable the workflow
-
 ## 📊 Analytics Features
 
 ### Topic-wise Progress
@@ -222,13 +178,6 @@ The system includes GitHub Actions for automated daily synchronization:
 - Language usage statistics
 - Runtime and memory analysis
 
-## 🔒 Security & Privacy
-
-- **No Data Storage**: All data is stored in your Google Sheets
-- **Service Account**: Uses Google service account for authentication
-- **Environment Variables**: Sensitive data stored in environment variables
-- **GitHub Secrets**: Credentials stored securely in GitHub repository secrets
-
 ## 🧪 Testing
 
 ```bash
@@ -243,33 +192,6 @@ black src/
 
 # Lint code
 flake8 src/
-```
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-1. **Authentication Errors**:
-   - Verify Google service account has access to the sheet
-   - Check credentials JSON format
-   - Ensure Sheets API is enabled
-
-2. **LeetCode Connection Issues**:
-   - Verify username is correct
-   - Check if account is public
-   - Consider adding session ID for private accounts
-
-3. **Rate Limiting**:
-   - System includes exponential backoff
-   - Increase delays if needed
-   - Check LeetCode API status
-
-### Debug Mode
-
-```bash
-# Enable debug logging
-export LOG_LEVEL=DEBUG
-python main.py test
 ```
 
 ## 🤝 Contributing
@@ -289,12 +211,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - LeetCode for providing the GraphQL API
 - Google for Google Sheets API
 - Open source community for the libraries used
-
-## 📞 Support
-
-- **Issues**: Create an issue on GitHub
-- **Discussions**: Use GitHub Discussions for questions
-- **Wiki**: Check the project wiki for detailed guides
 
 ---
 

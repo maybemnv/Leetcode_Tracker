@@ -24,13 +24,12 @@ class LeetCodeClient:
         self.username = username
         self.base_url = "https://leetcode.com/graphql"
         self.session = requests.Session()
-        
         # Set headers to mimic browser
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             'Accept': 'application/json, text/plain, */*',
             'Accept-Language': 'en-US,en;q=0.9',
-            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Encoding': 'gzip, deflate',
             'Connection': 'keep-alive',
             'Referer': 'https://leetcode.com/',
         })
@@ -67,13 +66,23 @@ class LeetCodeClient:
                 )
                 
                 if response.status_code == 200:
-                    data = response.json()
-                    if 'errors' in data:
-                        logger.error(f"GraphQL errors: {data['errors']}")
-                        return None
-                    return data.get('data')
+                    try:
+                        data = response.json()
+                        if 'errors' in data:
+                            logger.error(f"GraphQL errors: {data['errors']}")
+                            return None
+                        return data.get('data')
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"JSON decode error on attempt {attempt + 1}: {e}")
+                        logger.warning(f"Response content (first 200 chars): {response.text[:200]}")
+                        # Check if it's an HTML response (rate limit page)
+                        if response.text.strip().startswith('<'):
+                            logger.warning("Received HTML response instead of JSON - likely rate limited")
+                            time.sleep(5)  # Wait longer for rate limit
+                        continue
                 else:
                     logger.warning(f"Request failed with status {response.status_code}, attempt {attempt + 1}")
+                    logger.warning(f"Response content: {response.text[:200]}")
                     
             except requests.exceptions.RequestException as e:
                 logger.warning(f"Request exception on attempt {attempt + 1}: {e}")
@@ -187,34 +196,24 @@ class LeetCodeClient:
             Problem details dictionary or None
         """
         query = """
-        query problemDetails($titleSlug: String!) {
-            question(titleSlug: $titleSlug) {
-                questionId
-                title
-                titleSlug
-                difficulty
-                topicTags {
-                    name
-                    slug
-                }
-                companyTagStats {
-                    stats {
-                        tagName
-                        timesEncountered
-                    }
-                }
-                stats {
-                    totalAccepted
-                    totalSubmission
-                    acRate
-                }
-                content
-                isPaidOnly
-                categoryTitle
+    query problemDetails($titleSlug: String!) {
+        question(titleSlug: $titleSlug) {
+            questionId
+            title
+            titleSlug
+            difficulty
+            topicTags {
+                name
+                slug
             }
+            companyTagStats
+            stats
+            content
+            isPaidOnly
+            categoryTitle
         }
-        """
-        
+    }
+     """   
         variables = {
             'titleSlug': problem_slug
         }
@@ -233,23 +232,43 @@ class LeetCodeClient:
         # Extract company tags
         companies = []
         if 'companyTagStats' in question and question['companyTagStats']:
-            for stat in question['companyTagStats'].get('stats', []):
-                companies.append(stat.get('tagName', ''))
+            try:
+                company_data = json.loads(question['companyTagStats'])
+                if isinstance(company_data, list):
+                   companies = [company.get('tagName', '') for company in company_data]
+                elif isinstance(company_data, dict) and 'stats' in company_data:
+                  companies = [stat.get('tagName', '') for stat in company_data['stats']]
+            except (json.JSONDecodeError, TypeError):
+             logger.warning(f"Failed to parse company tags for {problem_slug}")
         
+      # Parse stats from JSON string
+        acceptance_rate = 0
+        total_accepted = 0
+        total_submissions = 0
+    
+        if 'stats' in question and question['stats']:
+            try:
+              stats_data = json.loads(question['stats'])
+              acceptance_rate = stats_data.get('acRate', 0)
+              total_accepted = stats_data.get('totalAccepted', 0)
+              total_submissions = stats_data.get('totalSubmission', 0)
+            except (json.JSONDecodeError, TypeError):
+             logger.warning(f"Failed to parse stats for {problem_slug}")
+    
         problem_details = {
-            'problem_id': question.get('questionId', ''),
-            'title': question.get('title', ''),
-            'title_slug': question.get('titleSlug', ''),
-            'difficulty': question.get('difficulty', ''),
-            'topics': topics,
-            'companies': companies,
-            'is_paid_only': question.get('isPaidOnly', False),
-            'category': question.get('categoryTitle', ''),
-            'acceptance_rate': question.get('stats', {}).get('acRate', 0),
-            'total_accepted': question.get('stats', {}).get('totalAccepted', 0),
-            'total_submissions': question.get('stats', {}).get('totalSubmission', 0)
-        }
-        
+        'problem_id': question.get('questionId', ''),
+        'title': question.get('title', ''),
+        'title_slug': question.get('titleSlug', ''),
+        'difficulty': question.get('difficulty', ''),
+        'topics': topics,
+        'companies': companies,
+        'is_paid_only': question.get('isPaidOnly', False),
+        'category': question.get('categoryTitle', ''),
+        'acceptance_rate': acceptance_rate,
+        'total_accepted': total_accepted,
+        'total_submissions': total_submissions
+    }
+    
         return problem_details
     
     def get_user_statistics(self) -> Optional[Dict]:
@@ -449,12 +468,19 @@ class LeetCodeClient:
             bool: True if connection is successful
         """
         try:
+            # First try a simple request to check if the API is accessible
+            logger.info(f"Testing LeetCode connection for user: {self.username}")
+            
             # Try to get user statistics
             stats = self.get_user_statistics()
-            if stats:
+            if stats and isinstance(stats, dict) and stats.get('username'):
                 logger.info(f"Successfully connected to LeetCode for user: {stats.get('username', '')}")
                 return True
-            return False
+            
+            # If that fails, try a simpler approach - just check if we can reach the API
+            logger.warning("User statistics failed, trying basic API test...")
+            return self._test_basic_connection()
+            
         except Exception as e:
             logger.error(f"Connection test failed: {e}")
             return False
