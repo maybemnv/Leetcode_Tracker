@@ -44,11 +44,19 @@ class SyncManager:
         try:
             # Initialize LeetCode client
             leetcode_config = self.config.get('leetcode', {})
-            self.leetcode_client = LeetCodeClient(
-                username=leetcode_config.get('username'),
-                session_id=leetcode_config.get('session_id'),
-                csrf_token=leetcode_config.get('csrf_token')
-            )
+            username = leetcode_config.get('username')
+            if not username:
+                raise ValueError("LeetCode username is required in configuration")
+                
+            # Only pass session_id and csrf_token if both are provided
+            client_kwargs = {'username': username}
+            if leetcode_config.get('session_id') and leetcode_config.get('csrf_token'):
+                client_kwargs.update({
+                    'session_id': leetcode_config.get('session_id'),
+                    'csrf_token': leetcode_config.get('csrf_token')
+                })
+                
+            self.leetcode_client = LeetCodeClient(**client_kwargs)
             logger.info("LeetCode client initialized")
             
             # Initialize Google Sheets client
