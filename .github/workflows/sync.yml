@@ -21,12 +21,12 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.9'
+          python-version: '3.11'
           
       - name: Cache pip dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -38,8 +38,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           
-      - name: Create logs directory
-        run: mkdir -p logs
+      - name: Create logs and backups directories
+        run: |
+          mkdir -p logs
+          mkdir -p backups
         
       - name: Run LeetCode sync
         env:
@@ -52,7 +54,7 @@ jobs:
           python main.py sync --incremental
           
       - name: Upload logs as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: sync-logs-${{ github.run_number }}
@@ -67,31 +69,91 @@ jobs:
           LOG_LEVEL: INFO
         run: |
           python main.py backup --path backups/backup_${{ github.run_number }}.json
+        continue-on-error: true
           
       - name: Upload backup as artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: backup-${{ github.run_number }}
           path: backups/
           retention-days: 30
           
-      - name: Notify on failure
+      - name: Create GitHub issue on failure
         if: failure()
-        uses: romeovs/lcov-reporter-action@v0.3.1
+        uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          message: |
-            ❌ LeetCode sync failed for run ${{ github.run_number }}
+          script: |
+            const title = `LeetCode Sync Failed - Run #${{ github.run_number }}`;
+            const body = `❌ **LeetCode sync failed**
             
-            Check the logs for details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            **Run Details:**
+            - Run Number: ${{ github.run_number }}
+            - Commit: ${{ github.sha }}
+            - Branch: ${{ github.ref_name }}
+            - Triggered by: ${{ github.event_name }}
             
-      - name: Notify on success
+            **Logs:** https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            
+            This issue was automatically created by the sync workflow.`;
+            
+            // Check if there's already an open issue for sync failures
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'sync-failure',
+              state: 'open'
+            });
+            
+            if (issues.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['sync-failure', 'automated']
+              });
+            } else {
+              // Add comment to existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues.data[0].number,
+                body: `🔄 **Another sync failure occurred**
+                
+                Run #${{ github.run_number }} failed. [View logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})`
+              });
+            }
+            
+      - name: Close sync failure issues on success
         if: success()
-        uses: romeovs/lcov-reporter-action@v0.3.1
+        uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          message: |
-            ✅ LeetCode sync completed successfully for run ${{ github.run_number }}
+          script: |
+            // Find and close open sync-failure issues
+            const issues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'sync-failure',
+              state: 'open'
+            });
             
-            Check the logs for details: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            for (const issue of issues.data) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `✅ **Sync is now working**
+                
+                Run #${{ github.run_number }} completed successfully. [View logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+                
+                Closing this issue as the sync is working again.`
+              });
+              
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed'
+              });
+            }

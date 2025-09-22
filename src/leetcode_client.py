@@ -227,20 +227,24 @@ class LeetCodeClient:
 
         return user_stats
 
-    def get_user_submissions(self, limit: int = 1000) -> List[Dict]:
-        """Fetch recent submission list and calendar. Returns list of accepted submissions."""
-        # First, get the submission calendar
+    def get_user_submissions(self, limit: int = 10000) -> List[Dict]:
+        """Fetch all submission list and calendar. Returns list of accepted submissions."""
+        # First, get all-time submission calendar
         calendar_query = """
-        query userProgressCalendar($username: String!, $year: Int!) {
+        query userProgressCalendar($username: String!) {
+          allQuestionsCount {
+            difficulty
+            count
+          }
           matchedUser(username: $username) {
-            userCalendar(year: $year) {
+            userCalendar {
               submissionCalendar
             }
           }
         }
         """
         
-        # Then get recent submissions
+        # Then get all submissions with a large limit
         submissions_query = """
         query recentSubmissions($username: String!, $limit: Int!) {
           recentSubmissionList(username: $username, limit: $limit) {
@@ -264,11 +268,10 @@ class LeetCodeClient:
         }
         """
 
-        # Get calendar data for current year
-        current_year = datetime.now().year
-        calendar_data = self._make_graphql_request(calendar_query, {"username": self.username, "year": current_year})
+        # Get all-time calendar data
+        calendar_data = self._make_graphql_request(calendar_query, {"username": self.username})
         
-        # Get submissions data
+        # Get all submissions data with increased limit
         data = self._make_graphql_request(submissions_query, {"username": self.username, "limit": limit})
         if not data:
             return []
