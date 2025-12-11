@@ -45,7 +45,7 @@ class SheetsClient:
             self.client = gspread.authorize(credentials)
             logger.info("Authenticated with Google Sheets using file")
         except Exception as e:
-            logger.error(f"Failed to authenticate with file: {e}")
+            logger.error(f"Failed to authenticate with file: {e}") 
             raise
     
     def _authenticate_with_json(self, credentials_json: str):
