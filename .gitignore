@@ -1,8 +1,8 @@
 
 .env
 leetcode-tracker-471216-0b9a61a2c6e4.json
-leetcode-tracker-471216-df230ef2071c.json
-venv/
+.github/
+.venv/
 logs/
 __pycache__/
 *.pyc
